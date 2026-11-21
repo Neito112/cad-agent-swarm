@@ -42,21 +42,22 @@ bash "$HOME/.cad-agent-swarm/install.sh"
 ```
 
 What the installer automatically does:
-1. **Detects all 8 ArtCraft + SolidCraft CLIs** (`solidcraft-cli`, `cadcraft-cli`, `designcraft-cli`, `vectorcraft-cli`, `photocraft-cli`, `effectcraft-cli`, `filmcraft-cli`, `soundcraft-cli`).
-2. **Registers all 9 MCP servers** (with `--compact` enabled on `solidcraft`) across:
+1. **Detects all 9 ArtCraft + SolidCraft CLIs** (`solidcraft-cli`, `cadcraft-cli`, `designcraft-cli`, `vectorcraft-cli`, `photocraft-cli`, `effectcraft-cli`, `filmcraft-cli`, `soundcraft-cli`, `craft-anything-cli`).
+2. **Registers all 10+ MCP servers** (including `solidcraft --compact`, `cadcraft-live`, `craft-anything`, and preserves/shares `vionix-chrome` Chrome Remote) across:
    - Antigravity: `~/.gemini/config/mcp_config.json`
    - Claude Code: `~/.claude.json`
    - Gemini CLI: `~/.gemini/settings.json`
-3. **Installs the Unified Master Control Board** (`board/master-board.json` + `board/dashboard.html`) to `~/.cad-agent-swarm/board/`.
-4. **Installs all 10 skills** into `~/.gemini/config/skills/` and `~/.claude/skills/`:
+3. **Installs the Unified Master Control Board** (`board/master-board.json` + `board/dashboard.html`) to `~/.cad-agent-swarm/board/` **AND embeds it directly into SolidCraft/ArtCraft's native Assistant panel (`Ctrl+Shift+A`)** (`%LOCALAPPDATA%\SolidCraft\agent-chat\work\{CLAUDE.md,AGENTS.md,GEMINI.md,board\}` + live `ui.prefs` `agent_instructions`).
+4. **Enables Zero-Friction Autonomous Main Chat:** A single user prompt triggers background end-to-end execution (`CHAIN_MODE = ON`) using Chrome Remote (`vionix-chrome`), web search, file downloads, and the ArtCraft + SolidCraft suite with iterative self-editing.
+5. **Installs all 10 skills** into `~/.gemini/config/skills/` and `~/.claude/skills/`:
    - 4 studio/swarm/token/playbook skills: `craft-master-board`, `cad-visual-cursor-swarm`, `cad-token-optimizer`, `cad-drafting-3d-playbook`
    - 6 official SolidCraft skills synced from `https://github.com/tangency-labs/solidcraft`
-5. **Installs all 19 specialist sub-agents** (`agents/*.md`) into `~/.claude/agents/`:
+6. **Installs all 19 specialist sub-agents** (`agents/*.md`) into `~/.claude/agents/`:
    - Board & Workflow: `craft-master-board`, `craft-workflow-builder`
    - Concept / Spec / Render / Photo / Vector / Layout / Video+VFX+Sound: `craft-concept-director`, `craft-spec-contract`, `craft-studio-renderer`, `craft-photo-retoucher`, `craft-vector-brand`, `craft-layout-publisher`, `craft-vfx-film-sound`
    - 3D/2D CAD Swarm (10): `cad-swarm-orchestrator`, `cad-cursor-choreographer`, `cad-parametric-architect`, `cad-sketcher-2d`, `cad-solid-modeler`, `cad-sheetmetal-specialist`, `cad-mechanism-assembler`, `cad-geometry-qa`, `cad-visual-reviewer`, `cad-export-bom`
-6. **Installs RTK (Rust Token Killer)** globally + configures Claude Code hooks for 60–90% CLI output compression.
-7. **Activates Live Agent Cursor** (`ui.agent_cursor`: `show: true`, `follow_camera: true`, `speed: 1.5`) on any running SolidCraft instance.
+7. **Installs RTK (Rust Token Killer)** globally + configures Claude Code hooks for 60–90% CLI output compression.
+8. **Activates Live Agent Cursor** (`ui.agent_cursor`: `show: true`, `follow_camera: true`, `speed: 1.5`) on any running SolidCraft instance.
 
 ---
 

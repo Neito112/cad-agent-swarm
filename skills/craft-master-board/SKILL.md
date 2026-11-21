@@ -16,6 +16,17 @@ Never scatter orchestration across ad-hoc plans. Every task maps cleanly to the 
 
 ---
 
+## 0. Core Philosophy (Zero-Friction Autonomous Pipeline)
+
+- **Main Chat Simplicity:** The user only sends a brief request in the main chat. When `CHAIN_MODE = ON`, run the entire background workflow end-to-end automatically until final deliverables are produced — do not stall asking for step-by-step confirmation.
+- **Full Autonomous Toolkit:** Research, source, download, create, and iteratively refine using:
+  - **Chrome Remote (`vionix-chrome` MCP)** for browsing, web extraction, and live web assets;
+  - **Web Search (`tavily_tavily` / `search_web`)** for technical specs, standards, and references;
+  - **Direct File Downloads** (datasheets, reference photos, STEP/DXF models, textures, audio/SFX);
+  - **The Full ArtCraft + SolidCraft Suite** (`SolidCraft`, `CADCraft`, `DesignCraft`, `VectorCraft`, `PhotoCraft`, `EffectCraft`, `FilmCraft`, `SoundCraft`, `Craft Anything`) followed by **iterative edit-and-verify loops** until quality gates pass.
+
+---
+
 ## 1. The Chain Mode Switch (`CHAIN_MODE: ON / OFF`)
 
 Before executing ANY stage, check the requested mode (or default in `board/master-board.json`):

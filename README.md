@@ -23,13 +23,15 @@ bash ~/.cad-agent-swarm/install.sh
 
 ---
 
-## Single Master Control Board (`board/master-board.json` + `board/dashboard.html`)
+## Single Master Control Board (`board/master-board.json` + Built-in ArtCraft Assistant)
 
-Open [`board/dashboard.html`](./board/dashboard.html) in any browser to visually toggle **`CHAIN_MODE`** and generate exact prompts for the 12-stage studio pipeline:
+The Unified Master Control Board is installed **both** as a standalone interactive board ([`board/dashboard.html`](./board/dashboard.html)) **and directly inside SolidCraft / ArtCraft's native Assistant panel (`Ctrl+Shift+A`)** via `%LOCALAPPDATA%\SolidCraft\agent-chat\work\` + live `ui.prefs`:
 
+- **Zero-Friction Autonomous Main Chat:** Type a single prompt in the main chat and the background pipeline runs end-to-end automatically (when `CHAIN_MODE = ON`) — browsing & scraping via **Chrome Remote (`vionix-chrome`)**, running **Web Search**, downloading reference files/assets, and driving the **full ArtCraft + SolidCraft suite** with iterative self-editing until final deliverables pass QA.
 - **`CHAIN_MODE = ON` (Móc nối):** Runs every stage in the active workflow sequentially, passing only a **`<= 300-token` JSON handoff capsule** between stages until final delivery.
 - **`CHAIN_MODE = OFF` (Độc lập):** Runs **ONLY** the single clicked/requested stage (`S01`..`S12`), saves its artifacts, and stops immediately.
 - **Custom Workflow Builder (`craft-workflow-builder`):** Dedicated sub-agent whose sole job is creating custom multi-stage workflows tailored to your project and persisting them into `board/master-board.json`.
+- **Companion Tools Registered:** All 8 ArtCraft + SolidCraft apps (9 MCP entries) + **`craft-anything`** MCP (`craft-anything-cli mcp`) + **`vionix-chrome`** Chrome Remote across Antigravity, Claude Code, and Gemini CLI.
 
 ### The 12 Master Pipeline Stages
 
@@ -76,8 +78,8 @@ Every one of the **19 sub-agents** and **10 skills** enforces:
 - `board/master-board.json` & `board/dashboard.html` — Single Unified Control Board + interactive UI
 - `agents/` — **19 specialist sub-agents** (10 CAD swarm ants + 9 ArtCraft studio/board agents including `craft-master-board` and `craft-workflow-builder`)
 - `skills/` — `craft-master-board`, `cad-visual-cursor-swarm`, `cad-token-optimizer`, `cad-drafting-3d-playbook` (+ installer syncs 6 official SolidCraft skills = **10 skills total**)
-- `scripts/` — `enable-solidcraft-cursor.ps1` (live cursor activator) & `launch-cadcraft-live.bat`
-- `install.ps1` & `install.sh` — Full auto-installer registering all 9 MCP servers across Antigravity, Claude Code, and Gemini CLI.
+- `scripts/` — `install-artcraft-assistant.ps1` (embeds Master Board into SolidCraft Assistant), `enable-solidcraft-cursor.ps1` (live cursor activator) & `launch-cadcraft-live.bat`
+- `install.ps1` & `install.sh` — Full auto-installer registering all 9 ArtCraft + SolidCraft MCP servers (`+ craft-anything` + `vionix-chrome`) across Antigravity, Claude Code, and Gemini CLI.
 
 ## License
 

@@ -60,16 +60,21 @@ $soundcraftCli = Find-Binary "soundcraft-cli" @(
   "C:\Program Files\ArtCraft\SoundCraft\soundcraft-cli.exe",
   "$env:LOCALAPPDATA\Programs\SoundCraft\soundcraft-cli.exe"
 )
+$craftAnythingCli = Find-Binary "craft-anything-cli" @(
+  "C:\Program Files\Craft Anything\craft-anything-cli.exe",
+  "$env:LOCALAPPDATA\Programs\Craft Anything\craft-anything-cli.exe"
+)
 
 $detected = [ordered]@{
-  solidcraft  = $solidcraftCli
-  cadcraft    = $cadcraftCli
-  designcraft = $designcraftCli
-  vectorcraft = $vectorcraftCli
-  photocraft  = $photocraftCli
-  effectcraft = $effectcraftCli
-  filmcraft   = $filmcraftCli
-  soundcraft  = $soundcraftCli
+  solidcraft      = $solidcraftCli
+  cadcraft        = $cadcraftCli
+  designcraft     = $designcraftCli
+  vectorcraft     = $vectorcraftCli
+  photocraft      = $photocraftCli
+  effectcraft     = $effectcraftCli
+  filmcraft       = $filmcraftCli
+  soundcraft      = $soundcraftCli
+  "craft-anything" = $craftAnythingCli
 }
 foreach ($kv in $detected.GetEnumerator()) {
   Write-Host ("{0,-12}: {1}" -f $kv.Key, $(if ($kv.Value) { $kv.Value } else { "NOT FOUND (skipped MCP)" }))
@@ -105,13 +110,14 @@ function Update-McpJson([string]$Path, [bool]$IncludeType) {
   if ($vectorcraftCli) { Set-Server "vectorcraft"   $vectorcraftCli @("mcp") }
   if ($photocraftCli)  { Set-Server "photocraft"    $photocraftCli  @("mcp") }
   if ($effectcraftCli) { Set-Server "effectcraft"   $effectcraftCli @("mcp") }
-  if ($filmcraftCli)   { Set-Server "filmcraft"     $filmcraftCli   @("mcp") }
-  if ($soundcraftCli)  { Set-Server "soundcraft"    $soundcraftCli  @("mcp") }
+  if ($filmcraftCli)     { Set-Server "filmcraft"      $filmcraftCli     @("mcp") }
+  if ($soundcraftCli)    { Set-Server "soundcraft"     $soundcraftCli    @("mcp") }
+  if ($craftAnythingCli) { Set-Server "craft-anything" $craftAnythingCli @("mcp") }
 
   $json = ($obj | ConvertTo-Json -Depth 20) + "`n"
   $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
   [System.IO.File]::WriteAllText($Path, $json, $utf8NoBom)
-  Write-Host "[OK] Updated MCP config (up to 9 ArtCraft/SolidCraft servers): $Path" -ForegroundColor Green
+  Write-Host "[OK] Updated MCP config (up to 10 ArtCraft/SolidCraft servers): $Path" -ForegroundColor Green
 }
 
 Update-McpJson "$env:USERPROFILE\.gemini\config\mcp_config.json" $false
@@ -208,16 +214,18 @@ if (-not (Get-Command rtk -ErrorAction SilentlyContinue)) {
   Write-Host "[OK] RTK already installed" -ForegroundColor Green
 }
 
-# 8. Enable Live Agent Cursor if SolidCraft is currently running
-if (-not $SkipLiveCursorCheck) {
-  $cursorScript = Join-Path $RepoRoot "scripts\enable-solidcraft-cursor.ps1"
-  if (Test-Path $cursorScript) {
+# 8. Embed Master Board into SolidCraft/ArtCraft native Assistant & enable Live Agent Cursor
+$assistantScript = Join-Path $RepoRoot "scripts\install-artcraft-assistant.ps1"
+if (Test-Path $assistantScript) {
+  if ($SkipLiveCursorCheck) {
+    Write-Host "[INFO] Skipped live SolidCraft control push (-SkipLiveCursorCheck)." -ForegroundColor Yellow
+  } else {
     try {
-      & $cursorScript -Speed 1.5
+      & $assistantScript
     } catch {
-      Write-Host "[INFO] SolidCraft desktop app is not listening right now. Enable 'Preferences > Assistant > Agents through MCP > Let AI agents connect' and re-run scripts\enable-solidcraft-cursor.ps1." -ForegroundColor Yellow
+      Write-Warning "SolidCraft Assistant live install warning: $($_.Exception.Message)"
     }
   }
 }
 
-Write-Host "`nDone! Open board\dashboard.html for the Unified Master Control Board, and reload MCP / start a new chat to activate all 9 servers, 10 skills, and 19 sub-agents." -ForegroundColor Cyan
+Write-Host "`nDone! Open SolidCraft Assistant (Ctrl+Shift+A) or board\dashboard.html, and reload MCP / start a new chat to activate all 10+ servers, 10 skills, and 19 sub-agents." -ForegroundColor Cyan

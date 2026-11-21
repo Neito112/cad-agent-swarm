@@ -3,6 +3,14 @@
   "name": "ArtCraft Unified Master Agent Control Board",
   "chain_mode": true,
   "active_workflow": "full-product-launch",
+  "autonomous_pipeline": {
+    "zero_friction_main_chat": true,
+    "chrome_remote_mcp": "vionix-chrome",
+    "web_search": ["tavily_tavily", "search_web"],
+    "auto_download_assets": true,
+    "artcraft_edit_refine_loop": true,
+    "craft_anything_cli": "C:\\Program Files\\Craft Anything\\craft-anything-cli.exe"
+  },
   "token_policy": {
     "enforce_on_every_chat": true,
     "solidcraft_compact": true,
