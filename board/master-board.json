@@ -1,0 +1,203 @@
+{
+  "version": "2.0.0",
+  "name": "ArtCraft Unified Master Agent Control Board",
+  "chain_mode": true,
+  "active_workflow": "full-product-launch",
+  "token_policy": {
+    "enforce_on_every_chat": true,
+    "solidcraft_compact": true,
+    "rtk_cli_compression": true,
+    "max_stage_handoff_tokens": 300,
+    "forbid_unfiltered_dumps": true,
+    "model_tiering": {
+      "fast_tier": ["S05_BOM_COSTING", "S04_QA", "formatting", "coordinate_math"],
+      "frontier_tier": ["S01_CONCEPT", "S03_3D_MODEL", "S10_VFX_MOTION", "S11_VIDEO_EDIT"]
+    }
+  },
+  "stages": [
+    {
+      "id": "S01_CONCEPT",
+      "order": 1,
+      "name": "Concept & Creative Brief",
+      "agent": "craft-concept-director",
+      "mcp": ["designcraft", "vectorcraft"],
+      "outputs": ["concept-brief.md", "moodboard-spec.json"]
+    },
+    {
+      "id": "S02_SPEC_CONTRACT",
+      "order": 2,
+      "name": "Engineering Spec, SOW & Contract",
+      "agent": "craft-spec-contract",
+      "mcp": ["designcraft"],
+      "outputs": ["engineering-spec.md", "contract-sow.md", "design-parameters.json"]
+    },
+    {
+      "id": "S03_3D_MODEL",
+      "order": 3,
+      "name": "3D Parametric Modeling & Assemblies (Live Cursor)",
+      "agent": "cad-swarm-orchestrator",
+      "sub_agents": [
+        "cad-cursor-choreographer",
+        "cad-parametric-architect",
+        "cad-solid-modeler",
+        "cad-sheetmetal-specialist",
+        "cad-mechanism-assembler",
+        "cad-geometry-qa",
+        "cad-visual-reviewer"
+      ],
+      "mcp": ["solidcraft"],
+      "outputs": ["model.sc", "model.step", "model.stl", "model.3mf"]
+    },
+    {
+      "id": "S04_2D_SHOP_CNC",
+      "order": 4,
+      "name": "2D Shop Drawings, Construction & CNC/Laser Files",
+      "agent": "cad-sketcher-2d",
+      "mcp": ["cadcraft", "cadcraft-live"],
+      "outputs": ["shop-drawing.dxf", "shop-drawing.pdf", "cnc-profile.dxf"]
+    },
+    {
+      "id": "S05_BOM_COSTING",
+      "order": 5,
+      "name": "Material Take-off, BOM & Cost Estimate",
+      "agent": "cad-export-bom",
+      "mcp": ["solidcraft", "cadcraft"],
+      "outputs": ["bom.csv", "bom-costing.md"]
+    },
+    {
+      "id": "S06_3D_RENDER",
+      "order": 6,
+      "name": "Studio Photorealistic 3D Rendering",
+      "agent": "craft-studio-renderer",
+      "mcp": ["solidcraft"],
+      "outputs": ["render-hero.png", "render-turntable-frames/"]
+    },
+    {
+      "id": "S07_PHOTO_POST",
+      "order": 7,
+      "name": "Photo Post-Processing, Color Grade & Key Visuals",
+      "agent": "craft-photo-retoucher",
+      "mcp": ["photocraft"],
+      "outputs": ["key-visual-final.png", "ad-banners/"]
+    },
+    {
+      "id": "S08_VECTOR_BRAND",
+      "order": 8,
+      "name": "Vector Branding, Icons & Packaging Die-Lines",
+      "agent": "craft-vector-brand",
+      "mcp": ["vectorcraft"],
+      "outputs": ["logo.svg", "packaging-dieline.svg", "tech-diagrams.svg"]
+    },
+    {
+      "id": "S09_LAYOUT_DECK",
+      "order": 9,
+      "name": "Pitch Deck, Spec Booklet, Contract PDF & Posters",
+      "agent": "craft-layout-publisher",
+      "mcp": ["designcraft"],
+      "outputs": ["proposal-deck.pdf", "spec-sheet.pdf", "ad-poster.pdf"]
+    },
+    {
+      "id": "S10_VFX_MOTION",
+      "order": 10,
+      "name": "Motion Graphics, Exploded VFX & Title Animations",
+      "agent": "craft-vfx-film-sound",
+      "mcp": ["effectcraft"],
+      "outputs": ["vfx-overlays/", "product-reveal.mp4"]
+    },
+    {
+      "id": "S11_VIDEO_EDIT",
+      "order": 11,
+      "name": "Commercial Video Editing & Multi-Format Cuts",
+      "agent": "craft-vfx-film-sound",
+      "mcp": ["filmcraft"],
+      "outputs": ["commercial-16x9.mp4", "reel-9x16.mp4"]
+    },
+    {
+      "id": "S12_SOUND_MASTER",
+      "order": 12,
+      "name": "SFX, Voiceover Mix & Commercial Audio Mastering",
+      "agent": "craft-vfx-film-sound",
+      "mcp": ["soundcraft"],
+      "outputs": ["master-audio.wav", "final-commercial-with-audio.mp4"]
+    }
+  ],
+  "workflows": {
+    "full-product-launch": {
+      "label": "Full Product Launch (Concept -> CAD -> CNC -> Render -> Ad Video)",
+      "stages": [
+        "S01_CONCEPT",
+        "S02_SPEC_CONTRACT",
+        "S03_3D_MODEL",
+        "S04_2D_SHOP_CNC",
+        "S05_BOM_COSTING",
+        "S06_3D_RENDER",
+        "S07_PHOTO_POST",
+        "S08_VECTOR_BRAND",
+        "S09_LAYOUT_DECK",
+        "S10_VFX_MOTION",
+        "S11_VIDEO_EDIT",
+        "S12_SOUND_MASTER"
+      ]
+    },
+    "cnc-manufacturing-pack": {
+      "label": "CNC & Manufacturing Pack (Spec -> 3D -> 2D Shop/CNC DXF -> BOM)",
+      "stages": [
+        "S01_CONCEPT",
+        "S02_SPEC_CONTRACT",
+        "S03_3D_MODEL",
+        "S04_2D_SHOP_CNC",
+        "S05_BOM_COSTING"
+      ]
+    },
+    "architectural-shop-drawings": {
+      "label": "Construction & Shop Drawings Pack (Spec -> CADCraft 2D -> BOM -> Booklet)",
+      "stages": [
+        "S01_CONCEPT",
+        "S02_SPEC_CONTRACT",
+        "S04_2D_SHOP_CNC",
+        "S05_BOM_COSTING",
+        "S09_LAYOUT_DECK"
+      ]
+    },
+    "ad-commercial-video": {
+      "label": "Product Ad & Commercial Video (Concept -> Render -> Photo -> VFX -> Film -> Sound)",
+      "stages": [
+        "S01_CONCEPT",
+        "S06_3D_RENDER",
+        "S07_PHOTO_POST",
+        "S10_VFX_MOTION",
+        "S11_VIDEO_EDIT",
+        "S12_SOUND_MASTER"
+      ]
+    },
+    "brand-packaging-kit": {
+      "label": "Brand & Packaging Kit (Concept -> Vector -> 3D -> Render -> Photo -> Brand Book)",
+      "stages": [
+        "S01_CONCEPT",
+        "S08_VECTOR_BRAND",
+        "S03_3D_MODEL",
+        "S06_3D_RENDER",
+        "S07_PHOTO_POST",
+        "S09_LAYOUT_DECK"
+      ]
+    },
+    "client-proposal-contract": {
+      "label": "Client Proposal, SOW & Contract Pack (Concept -> Spec/Contract -> Costing -> PDF Deck)",
+      "stages": [
+        "S01_CONCEPT",
+        "S02_SPEC_CONTRACT",
+        "S05_BOM_COSTING",
+        "S09_LAYOUT_DECK"
+      ]
+    },
+    "3d-print-prototype": {
+      "label": "3D Print Prototype (Concept -> SolidCraft 3D -> BOM/STL/3MF -> Render)",
+      "stages": [
+        "S01_CONCEPT",
+        "S03_3D_MODEL",
+        "S05_BOM_COSTING",
+        "S06_3D_RENDER"
+      ]
+    }
+  }
+}

@@ -1,8 +1,9 @@
 ﻿<#
 .SYNOPSIS
-  Automated installer for cad-agent-swarm (Windows).
-  Installs SolidCraft & CADCraft MCP servers (--compact), Live Agent Cursor script,
-  9 CAD skills (3 swarm/token/playbook + 6 official SolidCraft skills), and 10 Claude Code sub-agents.
+  Automated installer for cad-agent-swarm (Windows) — ArtCraft Unified Studio Edition.
+  Installs all 9 ArtCraft + SolidCraft MCP servers (with --compact for SolidCraft),
+  Unified Master Control Board (board/), Live Agent Cursor script,
+  10 skills (4 custom + 6 official SolidCraft), 19 specialist sub-agents, and RTK.
 #>
 param(
   [switch]$SkipOfficialSolidCraftSkills,
@@ -12,9 +13,9 @@ param(
 $ErrorActionPreference = "Stop"
 $RepoRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 
-Write-Host "=== CAD Agent Swarm Installer (Windows) ===" -ForegroundColor Cyan
+Write-Host "=== ArtCraft Unified Studio & CAD Swarm Installer (Windows) ===" -ForegroundColor Cyan
 
-# 1. Detect SolidCraft & CADCraft CLI binaries
+# 1. Detect all 8 ArtCraft + SolidCraft CLI binaries
 function Find-Binary([string]$Name, [string[]]$Candidates) {
   $cmd = Get-Command $Name -ErrorAction SilentlyContinue
   if ($cmd) { return $cmd.Source }
@@ -35,9 +36,44 @@ $cadcraftCli = Find-Binary "cadcraft-cli" @(
   "$env:LOCALAPPDATA\Programs\CADCraft\cadcraft-cli.exe",
   "$env:USERPROFILE\.cargo\bin\cadcraft-cli.exe"
 )
+$designcraftCli = Find-Binary "designcraft-cli" @(
+  "C:\Program Files\ArtCraft\DesignCraft\designcraft-cli.exe",
+  "$env:LOCALAPPDATA\Programs\DesignCraft\designcraft-cli.exe"
+)
+$vectorcraftCli = Find-Binary "vectorcraft-cli" @(
+  "C:\Program Files\ArtCraft\VectorCraft\vectorcraft-cli.exe",
+  "$env:LOCALAPPDATA\Programs\VectorCraft\vectorcraft-cli.exe"
+)
+$photocraftCli = Find-Binary "photocraft-cli" @(
+  "C:\Program Files\ArtCraft\PhotoCraft\photocraft-cli.exe",
+  "$env:LOCALAPPDATA\Programs\PhotoCraft\photocraft-cli.exe"
+)
+$effectcraftCli = Find-Binary "effectcraft-cli" @(
+  "C:\Program Files\ArtCraft\EffectCraft\effectcraft-cli.exe",
+  "$env:LOCALAPPDATA\Programs\EffectCraft\effectcraft-cli.exe"
+)
+$filmcraftCli = Find-Binary "filmcraft-cli" @(
+  "C:\Program Files\ArtCraft\FilmCraft\filmcraft-cli.exe",
+  "$env:LOCALAPPDATA\Programs\FilmCraft\filmcraft-cli.exe"
+)
+$soundcraftCli = Find-Binary "soundcraft-cli" @(
+  "C:\Program Files\ArtCraft\SoundCraft\soundcraft-cli.exe",
+  "$env:LOCALAPPDATA\Programs\SoundCraft\soundcraft-cli.exe"
+)
 
-Write-Host "SolidCraft CLI: $(if ($solidcraftCli) { $solidcraftCli } else { 'NOT FOUND (skipped MCP)' })"
-Write-Host "CADCraft CLI:   $(if ($cadcraftCli) { $cadcraftCli } else { 'NOT FOUND (skipped MCP)' })"
+$detected = [ordered]@{
+  solidcraft  = $solidcraftCli
+  cadcraft    = $cadcraftCli
+  designcraft = $designcraftCli
+  vectorcraft = $vectorcraftCli
+  photocraft  = $photocraftCli
+  effectcraft = $effectcraftCli
+  filmcraft   = $filmcraftCli
+  soundcraft  = $soundcraftCli
+}
+foreach ($kv in $detected.GetEnumerator()) {
+  Write-Host ("{0,-12}: {1}" -f $kv.Key, $(if ($kv.Value) { $kv.Value } else { "NOT FOUND (skipped MCP)" }))
+}
 
 # 2. Update MCP configs (Antigravity, Claude Code, Gemini CLI) safely without BOM issues
 function Update-McpJson([string]$Path, [bool]$IncludeType) {
@@ -53,44 +89,64 @@ function Update-McpJson([string]$Path, [bool]$IncludeType) {
   if (-not $obj.ContainsKey("mcpServers") -or $null -eq $obj["mcpServers"]) {
     $obj["mcpServers"] = @{}
   }
-  if ($solidcraftCli) {
-    $entry = @{ command = $solidcraftCli; args = @("mcp", "--compact") }
+
+  function Set-Server([string]$Key, [string]$Cmd, [string[]]$ServerArgs) {
+    $entry = @{ command = $Cmd; args = $ServerArgs }
     if ($IncludeType) { $entry["type"] = "stdio" }
-    $obj["mcpServers"]["solidcraft"] = $entry
+    $obj["mcpServers"][$Key] = $entry
   }
+
+  if ($solidcraftCli)  { Set-Server "solidcraft"    $solidcraftCli  @("mcp", "--compact") }
   if ($cadcraftCli) {
-    $entry1 = @{ command = $cadcraftCli; args = @("mcp") }
-    $entry2 = @{ command = $cadcraftCli; args = @("mcp", "--connect", "127.0.0.1:7979", "--lazy") }
-    if ($IncludeType) { $entry1["type"] = "stdio"; $entry2["type"] = "stdio" }
-    $obj["mcpServers"]["cadcraft"] = $entry1
-    $obj["mcpServers"]["cadcraft-live"] = $entry2
+    Set-Server "cadcraft"      $cadcraftCli @("mcp")
+    Set-Server "cadcraft-live" $cadcraftCli @("mcp", "--connect", "127.0.0.1:7979", "--lazy")
   }
+  if ($designcraftCli) { Set-Server "designcraft"   $designcraftCli @("mcp") }
+  if ($vectorcraftCli) { Set-Server "vectorcraft"   $vectorcraftCli @("mcp") }
+  if ($photocraftCli)  { Set-Server "photocraft"    $photocraftCli  @("mcp") }
+  if ($effectcraftCli) { Set-Server "effectcraft"   $effectcraftCli @("mcp") }
+  if ($filmcraftCli)   { Set-Server "filmcraft"     $filmcraftCli   @("mcp") }
+  if ($soundcraftCli)  { Set-Server "soundcraft"    $soundcraftCli  @("mcp") }
+
   $json = ($obj | ConvertTo-Json -Depth 20) + "`n"
   $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
   [System.IO.File]::WriteAllText($Path, $json, $utf8NoBom)
-  Write-Host "[OK] Updated MCP config: $Path" -ForegroundColor Green
+  Write-Host "[OK] Updated MCP config (up to 9 ArtCraft/SolidCraft servers): $Path" -ForegroundColor Green
 }
 
 Update-McpJson "$env:USERPROFILE\.gemini\config\mcp_config.json" $false
 Update-McpJson "$env:USERPROFILE\.claude.json" $true
 Update-McpJson "$env:USERPROFILE\.gemini\settings.json" $false
 
-# 3. Install custom skills to Antigravity and Claude Code
+# 3. Install Unified Master Control Board -> ~/.cad-agent-swarm/board/
+$installHome = Join-Path $env:USERPROFILE ".cad-agent-swarm"
+$boardSrc = Join-Path $RepoRoot "board"
+$boardDst = Join-Path $installHome "board"
+if ((Test-Path $boardSrc) -and ([System.IO.Path]::GetFullPath($RepoRoot).TrimEnd('\') -ne [System.IO.Path]::GetFullPath($installHome).TrimEnd('\'))) {
+  New-Item -ItemType Directory -Path $boardDst -Force | Out-Null
+  Copy-Item "$boardSrc\*" $boardDst -Recurse -Force
+  Write-Host "[OK] Installed Master Control Board -> $boardDst" -ForegroundColor Green
+} elseif (Test-Path $boardDst) {
+  Write-Host "[OK] Master Control Board ready -> $boardDst" -ForegroundColor Green
+}
+
+# 4. Install custom skills (4 total: cad-visual-cursor-swarm, cad-token-optimizer, cad-drafting-3d-playbook, craft-master-board)
 $skillTargets = @(
   "$env:USERPROFILE\.gemini\config\skills",
   "$env:USERPROFILE\.claude\skills"
 )
+$customSkills = Get-ChildItem "$RepoRoot\skills" -Directory
 foreach ($target in $skillTargets) {
   New-Item -ItemType Directory -Path $target -Force | Out-Null
-  foreach ($skillDir in (Get-ChildItem "$RepoRoot\skills" -Directory)) {
+  foreach ($skillDir in $customSkills) {
     $dest = Join-Path $target $skillDir.Name
     if (Test-Path $dest) { Remove-Item $dest -Recurse -Force }
     Copy-Item -Recurse $skillDir.FullName $dest
   }
-  Write-Host "[OK] Installed 3 swarm/token/playbook skills -> $target" -ForegroundColor Green
+  Write-Host "[OK] Installed $($customSkills.Count) custom ArtCraft/CAD skills -> $target" -ForegroundColor Green
 }
 
-# 4. Sync 6 official SolidCraft skills from tangency-labs/solidcraft
+# 5. Sync 6 official SolidCraft skills from tangency-labs/solidcraft
 if (-not $SkipOfficialSolidCraftSkills) {
   $git = Get-Command git -ErrorAction SilentlyContinue
   if ($git) {
@@ -112,19 +168,20 @@ if (-not $SkipOfficialSolidCraftSkills) {
       }
     }
     Remove-Item $tmp -Recurse -Force -ErrorAction SilentlyContinue
-    Write-Host "[OK] Synced 6 official SolidCraft skills to Antigravity & Claude Code" -ForegroundColor Green
+    Write-Host "[OK] Synced 6 official SolidCraft skills (10 skills total per client)" -ForegroundColor Green
   } else {
     Write-Warning "git not found — skipped syncing official SolidCraft skills."
   }
 }
 
-# 5. Install 10 Claude Code specialist sub-agents
+# 6. Install all 19 specialist sub-agents (10 CAD + 9 ArtCraft Studio/Board)
 $agentsTarget = "$env:USERPROFILE\.claude\agents"
 New-Item -ItemType Directory -Path $agentsTarget -Force | Out-Null
+$agentFiles = Get-ChildItem "$RepoRoot\agents" -Filter "*.md"
 Copy-Item "$RepoRoot\agents\*.md" $agentsTarget -Force
-Write-Host "[OK] Installed 10 CAD specialist sub-agents -> $agentsTarget" -ForegroundColor Green
+Write-Host "[OK] Installed $($agentFiles.Count) specialist sub-agents -> $agentsTarget" -ForegroundColor Green
 
-# 6. Optional: Auto-install RTK (Rust Token Killer) for 60-90% CLI token savings
+# 7. Auto-install RTK (Rust Token Killer) for 60-90% CLI token savings
 if (-not (Get-Command rtk -ErrorAction SilentlyContinue)) {
   try {
     $rtkUrl = "https://github.com/rtk-ai/rtk/releases/download/v1.2.1/rtk-x86_64-pc-windows-msvc.zip"
@@ -151,7 +208,7 @@ if (-not (Get-Command rtk -ErrorAction SilentlyContinue)) {
   Write-Host "[OK] RTK already installed" -ForegroundColor Green
 }
 
-# 7. Enable Live Agent Cursor if SolidCraft is currently running
+# 8. Enable Live Agent Cursor if SolidCraft is currently running
 if (-not $SkipLiveCursorCheck) {
   $cursorScript = Join-Path $RepoRoot "scripts\enable-solidcraft-cursor.ps1"
   if (Test-Path $cursorScript) {
@@ -163,4 +220,4 @@ if (-not $SkipLiveCursorCheck) {
   }
 }
 
-Write-Host "`nDone! Reload MCP servers / start a new chat session to activate all tools, skills, and sub-agents." -ForegroundColor Cyan
+Write-Host "`nDone! Open board\dashboard.html for the Unified Master Control Board, and reload MCP / start a new chat to activate all 9 servers, 10 skills, and 19 sub-agents." -ForegroundColor Cyan

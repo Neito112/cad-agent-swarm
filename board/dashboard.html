@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ArtCraft Unified Master Agent Control Board</title>
+  <style>
+    :root {
+      --bg: #0b0e14;
+      --surface: #131823;
+      --surface-2: #192030;
+      --border: #273248;
+      --text: #e6edf7;
+      --muted: #93a4bd;
+      --accent: #38bdf8;
+      --accent-glow: rgba(56, 189, 248, 0.22);
+      --green: #34d399;
+      --amber: #fbbf24;
+      --purple: #a78bfa;
+      --pink: #f472b6;
+      --radius: 12px;
+      --font: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+      --mono: "JetBrains Mono", "Cascadia Code", Consolas, monospace;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 24px;
+      background: radial-gradient(circle at top right, #162033 0%, var(--bg) 55%);
+      color: var(--text);
+      font-family: var(--font);
+      line-height: 1.5;
+    }
+    .container { max-width: 1380px; margin: 0 auto; }
+    .header {
+      display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center;
+      gap: 16px; margin-bottom: 18px; padding: 20px 24px;
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    }
+    .title-wrap h1 { margin: 0 0 4px; font-size: 22px; letter-spacing: -0.02em; }
+    .title-wrap p { margin: 0; color: var(--muted); font-size: 13px; }
+    .token-bar {
+      display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px;
+      padding: 12px 16px; background: rgba(52, 211, 153, 0.06);
+      border: 1px solid rgba(52, 211, 153, 0.28); border-radius: var(--radius);
+      align-items: center;
+    }
+    .token-bar strong { font-size: 12px; color: var(--green); text-transform: uppercase; letter-spacing: 0.06em; margin-right: 6px; }
+    .badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 4px 10px; border-radius: 999px; font-size: 12px; font-family: var(--mono);
+      background: rgba(52, 211, 153, 0.14); color: #a7f3d0; border: 1px solid rgba(52, 211, 153, 0.3);
+    }
+    .controls {
+      display: grid; grid-template-columns: 1fr 1.3fr; gap: 16px; margin-bottom: 20px;
+    }
+    @media (max-width: 900px) { .controls { grid-template-columns: 1fr; } }
+    .card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 18px 20px;
+    }
+    .card h2 { margin: 0 0 12px; font-size: 14px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+    .chain-toggle-row {
+      display: flex; align-items: center; justify-content: space-between; gap: 14px;
+      padding: 12px 14px; background: var(--surface-2); border-radius: 10px; border: 1px solid var(--border);
+      margin-bottom: 14px;
+    }
+    .switch {
+      position: relative; width: 58px; height: 30px; flex-shrink: 0;
+    }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider {
+      position: absolute; cursor: pointer; inset: 0; background: #334155;
+      border-radius: 999px; transition: 0.2s; border: 1px solid #475569;
+    }
+    .slider:before {
+      position: absolute; content: ""; height: 22px; width: 22px; left: 3px; top: 3px;
+      background: #fff; border-radius: 50%; transition: 0.2s;
+    }
+    input:checked + .slider { background: #0284c7; border-color: var(--accent); box-shadow: 0 0 12px var(--accent-glow); }
+    input:checked + .slider:before { transform: translateX(28px); }
+    .mode-status { font-weight: 700; font-size: 14px; }
+    .mode-on { color: var(--accent); }
+    .mode-off { color: var(--amber); }
+    select, input[type="text"] {
+      width: 100%; padding: 10px 12px; border-radius: 8px;
+      background: var(--surface-2); color: var(--text); border: 1px solid var(--border);
+      font-family: var(--font); font-size: 13px; margin-bottom: 10px;
+    }
+    .stage-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+      gap: 12px; margin-bottom: 20px;
+    }
+    .stage-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 14px 16px; cursor: pointer; transition: 0.16s ease; position: relative;
+    }
+    .stage-card:hover { border-color: #4b6189; transform: translateY(-1px); }
+    .stage-card.active-chain {
+      border-color: var(--accent);
+      background: linear-gradient(180deg, rgba(56, 189, 248, 0.11) 0%, var(--surface) 100%);
+      box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.25);
+    }
+    .stage-card.active-single {
+      border-color: var(--amber);
+      background: linear-gradient(180deg, rgba(251, 191, 36, 0.13) 0%, var(--surface) 100%);
+      box-shadow: 0 0 0 1px rgba(251, 191, 36, 0.35);
+    }
+    .stage-card.dimmed { opacity: 0.42; }
+    .stage-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+    .stage-id { font-family: var(--mono); font-size: 11px; color: var(--accent); font-weight: 700; }
+    .stage-order {
+      font-family: var(--mono); font-size: 11px; padding: 2px 7px; border-radius: 6px;
+      background: var(--surface-2); color: var(--muted); border: 1px solid var(--border);
+    }
+    .stage-name { font-weight: 600; font-size: 14px; margin-bottom: 8px; }
+    .meta-row { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
+    .chip {
+      font-family: var(--mono); font-size: 11px; padding: 2px 7px; border-radius: 6px;
+      background: var(--surface-2); border: 1px solid var(--border); color: var(--muted);
+    }
+    .chip.mcp { color: #c4b5fd; border-color: rgba(167, 139, 250, 0.35); background: rgba(167, 139, 250, 0.1); }
+    .chip.agent { color: #7dd3fc; border-color: rgba(56, 189, 248, 0.3); background: rgba(56, 189, 248, 0.08); }
+    .prompt-box {
+      width: 100%; min-height: 120px; padding: 12px; border-radius: 8px;
+      background: #090c11; color: #dbeafe; border: 1px solid var(--border);
+      font-family: var(--mono); font-size: 12px; resize: vertical;
+    }
+    .btn-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
+    button {
+      padding: 9px 15px; border-radius: 8px; border: 1px solid var(--border);
+      background: var(--surface-2); color: var(--text); font-weight: 600; font-size: 13px;
+      cursor: pointer; transition: 0.15s;
+    }
+    button.primary { background: #0284c7; border-color: var(--accent); color: #fff; }
+    button.primary:hover { background: #0369a1; }
+    button.builder { background: rgba(244, 114, 182, 0.16); border-color: rgba(244, 114, 182, 0.45); color: #fbcfe8; }
+    button:hover { filter: brightness(1.1); }
+    .toast { font-size: 12px; color: var(--green); margin-left: 8px; align-self: center; }
+    .chain-preview {
+      font-family: var(--mono); font-size: 12px; color: var(--muted);
+      padding: 10px 12px; background: #090c11; border: 1px solid var(--border);
+      border-radius: 8px; margin-top: 8px; overflow-x: auto; white-space: nowrap;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="title-wrap">
+        <h1>ArtCraft Unified Master Agent Control Board</h1>
+        <p>1 bảng quản lý duy nhất cho toàn bộ hệ sinh thái 8 app ArtCraft + SolidCraft (12 giai đoạn · 19 sub-agent)</p>
+      </div>
+      <div class="meta-row">
+        <span class="chip mcp">solidcraft</span>
+        <span class="chip mcp">cadcraft</span>
+        <span class="chip mcp">designcraft</span>
+        <span class="chip mcp">vectorcraft</span>
+        <span class="chip mcp">photocraft</span>
+        <span class="chip mcp">effectcraft</span>
+        <span class="chip mcp">filmcraft</span>
+        <span class="chip mcp">soundcraft</span>
+      </div>
+    </div>
+
+    <div class="token-bar">
+      <strong>Token Guardrails (Mọi khung chat):</strong>
+      <span class="badge">--compact MCP (50-70%)</span>
+      <span class="badge">RTK CLI Compression (60-90%)</span>
+      <span class="badge">Stage Handoff &lt;= 300 tokens</span>
+      <span class="badge">No Unfiltered Dumps</span>
+      <span class="badge">Model Tiering</span>
+    </div>
+
+    <div class="controls">
+      <div class="card">
+        <h2>1. Chế độ Móc Nối &amp; Quy Trình</h2>
+        <div class="chain-toggle-row">
+          <div>
+            <div id="modeTitle" class="mode-status mode-on">CHAIN_MODE: ON (Móc nối tự động)</div>
+            <div id="modeDesc" style="font-size:12px; color:var(--muted);">Bật: Chạy lần lượt toàn bộ các bước trong quy trình qua capsule &le;300 token.</div>
+          </div>
+          <label class="switch" title="Bật/tắt chế độ móc nối (CHAIN_MODE)">
+            <input id="chainToggle" type="checkbox" checked />
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <label for="workflowSelect" style="font-size:12px; color:var(--muted); display:block; margin-bottom:4px;">Quy trình thiết kế (Preset Workflows):</label>
+        <select id="workflowSelect"></select>
+
+        <label for="briefInput" style="font-size:12px; color:var(--muted); display:block; margin-bottom:4px;">Yêu cầu / Đề bài sản phẩm:</label>
+        <input id="briefInput" type="text" placeholder="Ví dụ: Thiết kế vỏ hộp nhôm CNC cho bộ điều khiển ESP32-S3, kèm bản vẽ 2D, BOM và video quảng cáo 15s" />
+
+        <div id="chainPreview" class="chain-preview"></div>
+      </div>
+
+      <div class="card">
+        <h2>2. Lệnh Gọi Bảng Quản Lý (Master Prompt)</h2>
+        <textarea id="promptOutput" class="prompt-box" readonly></textarea>
+        <div class="btn-row">
+          <button id="copyBtn" class="primary">Copy Prompt Chạy Ngay</button>
+          <button id="builderBtn" class="builder">Copy Prompt Tạo Quy Trình Mới (craft-workflow-builder)</button>
+          <span id="toast" class="toast"></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="stage-grid" id="stageGrid"></div>
+  </div>
+
+  <script>
+    const BOARD_DATA = {
+      stages: [
+        { id: "S01_CONCEPT", order: 1, name: "Concept & Creative Brief", agent: "craft-concept-director", mcp: ["designcraft", "vectorcraft"], outputs: ["concept-brief.md", "moodboard-spec.json"] },
+        { id: "S02_SPEC_CONTRACT", order: 2, name: "Engineering Spec, SOW & Contract", agent: "craft-spec-contract", mcp: ["designcraft"], outputs: ["engineering-spec.md", "contract-sow.md", "design-parameters.json"] },
+        { id: "S03_3D_MODEL", order: 3, name: "3D Parametric Modeling & Assemblies (Live Cursor)", agent: "cad-swarm-orchestrator", mcp: ["solidcraft"], outputs: ["model.sc", "model.step", "model.stl", "model.3mf"] },
+        { id: "S04_2D_SHOP_CNC", order: 4, name: "2D Shop Drawings, Construction & CNC/Laser Files", agent: "cad-sketcher-2d", mcp: ["cadcraft", "cadcraft-live"], outputs: ["shop-drawing.dxf", "shop-drawing.pdf", "cnc-profile.dxf"] },
+        { id: "S05_BOM_COSTING", order: 5, name: "Material Take-off, BOM & Cost Estimate", agent: "cad-export-bom", mcp: ["solidcraft", "cadcraft"], outputs: ["bom.csv", "bom-costing.md"] },
+        { id: "S06_3D_RENDER", order: 6, name: "Studio Photorealistic 3D Rendering", agent: "craft-studio-renderer", mcp: ["solidcraft"], outputs: ["render-hero.png", "render-turntable-frames/"] },
+        { id: "S07_PHOTO_POST", order: 7, name: "Photo Post-Processing, Color Grade & Key Visuals", agent: "craft-photo-retoucher", mcp: ["photocraft"], outputs: ["key-visual-final.png", "ad-banners/"] },
+        { id: "S08_VECTOR_BRAND", order: 8, name: "Vector Branding, Icons & Packaging Die-Lines", agent: "craft-vector-brand", mcp: ["vectorcraft"], outputs: ["logo.svg", "packaging-dieline.svg", "tech-diagrams.svg"] },
+        { id: "S09_LAYOUT_DECK", order: 9, name: "Pitch Deck, Spec Booklet, Contract PDF & Posters", agent: "craft-layout-publisher", mcp: ["designcraft"], outputs: ["proposal-deck.pdf", "spec-sheet.pdf", "ad-poster.pdf"] },
+        { id: "S10_VFX_MOTION", order: 10, name: "Motion Graphics, Exploded VFX & Title Animations", agent: "craft-vfx-film-sound", mcp: ["effectcraft"], outputs: ["vfx-overlays/", "product-reveal.mp4"] },
+        { id: "S11_VIDEO_EDIT", order: 11, name: "Commercial Video Editing & Multi-Format Cuts", agent: "craft-vfx-film-sound", mcp: ["filmcraft"], outputs: ["commercial-16x9.mp4", "reel-9x16.mp4"] },
+        { id: "S12_SOUND_MASTER", order: 12, name: "SFX, Voiceover Mix & Commercial Audio Mastering", agent: "craft-vfx-film-sound", mcp: ["soundcraft"], outputs: ["master-audio.wav", "final-commercial-with-audio.mp4"] }
+      ],
+      workflows: {
+        "full-product-launch": { label: "Full Product Launch (Concept -> CAD -> CNC -> Render -> Ad Video)", stages: ["S01_CONCEPT","S02_SPEC_CONTRACT","S03_3D_MODEL","S04_2D_SHOP_CNC","S05_BOM_COSTING","S06_3D_RENDER","S07_PHOTO_POST","S08_VECTOR_BRAND","S09_LAYOUT_DECK","S10_VFX_MOTION","S11_VIDEO_EDIT","S12_SOUND_MASTER"] },
+        "cnc-manufacturing-pack": { label: "CNC & Manufacturing Pack (Spec -> 3D -> 2D Shop/CNC DXF -> BOM)", stages: ["S01_CONCEPT","S02_SPEC_CONTRACT","S03_3D_MODEL","S04_2D_SHOP_CNC","S05_BOM_COSTING"] },
+        "architectural-shop-drawings": { label: "Construction & Shop Drawings Pack (Spec -> CADCraft 2D -> BOM -> Booklet)", stages: ["S01_CONCEPT","S02_SPEC_CONTRACT","S04_2D_SHOP_CNC","S05_BOM_COSTING","S09_LAYOUT_DECK"] },
+        "ad-commercial-video": { label: "Product Ad & Commercial Video (Concept -> Render -> Photo -> VFX -> Film -> Sound)", stages: ["S01_CONCEPT","S06_3D_RENDER","S07_PHOTO_POST","S10_VFX_MOTION","S11_VIDEO_EDIT","S12_SOUND_MASTER"] },
+        "brand-packaging-kit": { label: "Brand & Packaging Kit (Concept -> Vector -> 3D -> Render -> Photo -> Brand Book)", stages: ["S01_CONCEPT","S08_VECTOR_BRAND","S03_3D_MODEL","S06_3D_RENDER","S07_PHOTO_POST","S09_LAYOUT_DECK"] },
+        "client-proposal-contract": { label: "Client Proposal, SOW & Contract Pack (Concept -> Spec/Contract -> Costing -> PDF Deck)", stages: ["S01_CONCEPT","S02_SPEC_CONTRACT","S05_BOM_COSTING","S09_LAYOUT_DECK"] },
+        "3d-print-prototype": { label: "3D Print Prototype (Concept -> SolidCraft 3D -> BOM/STL/3MF -> Render)", stages: ["S01_CONCEPT","S03_3D_MODEL","S05_BOM_COSTING","S06_3D_RENDER"] }
+      }
+    };
+
+    let chainMode = true;
+    let activeWorkflow = "full-product-launch";
+    let selectedSingleStage = "S03_3D_MODEL";
+
+    const chainToggle = document.getElementById("chainToggle");
+    const modeTitle = document.getElementById("modeTitle");
+    const modeDesc = document.getElementById("modeDesc");
+    const workflowSelect = document.getElementById("workflowSelect");
+    const briefInput = document.getElementById("briefInput");
+    const chainPreview = document.getElementById("chainPreview");
+    const promptOutput = document.getElementById("promptOutput");
+    const stageGrid = document.getElementById("stageGrid");
+    const toast = document.getElementById("toast");
+
+    Object.entries(BOARD_DATA.workflows).forEach(([key, wf]) => {
+      const opt = document.createElement("option");
+      opt.value = key;
+      opt.textContent = wf.label;
+      workflowSelect.appendChild(opt);
+    });
+    workflowSelect.value = activeWorkflow;
+
+    function render() {
+      const wf = BOARD_DATA.workflows[activeWorkflow];
+      if (chainMode) {
+        modeTitle.textContent = "CHAIN_MODE: ON (Móc nối tự động)";
+        modeTitle.className = "mode-status mode-on";
+        modeDesc.textContent = "Bật: Chạy lần lượt toàn bộ các bước trong quy trình qua capsule <=300 token.";
+        workflowSelect.disabled = false;
+        chainPreview.textContent = "Chain: " + wf.stages.join(" -> ");
+      } else {
+        modeTitle.textContent = "CHAIN_MODE: OFF (Chạy 1 bước độc lập)";
+        modeTitle.className = "mode-status mode-off";
+        modeDesc.textContent = "Tắt: Click vào bất kỳ card giai đoạn nào bên dưới để chạy duy nhất bước đó rồi dừng.";
+        workflowSelect.disabled = true;
+        chainPreview.textContent = "Single Stage Selected: " + selectedSingleStage + " (STOP after completion)";
+      }
+
+      stageGrid.innerHTML = "";
+      BOARD_DATA.stages.forEach((s) => {
+        const card = document.createElement("div");
+        const inChain = wf.stages.includes(s.id);
+        const isSingle = s.id === selectedSingleStage;
+        let cls = "stage-card";
+        if (chainMode) {
+          cls += inChain ? " active-chain" : " dimmed";
+        } else {
+          cls += isSingle ? " active-single" : " dimmed";
+        }
+        card.className = cls;
+        card.onclick = () => {
+          selectedSingleStage = s.id;
+          if (chainMode) {
+            chainMode = false;
+            chainToggle.checked = false;
+          }
+          render();
+        };
+
+        card.innerHTML = `
+          <div class="stage-top">
+            <span class="stage-id">${s.id}</span>
+            <span class="stage-order">#${String(s.order).padStart(2, "0")}</span>
+          </div>
+          <div class="stage-name">${s.name}</div>
+          <div class="meta-row">
+            <span class="chip agent">@${s.agent}</span>
+            ${s.mcp.map(m => `<span class="chip mcp">${m}</span>`).join("")}
+          </div>
+          <div class="meta-row">
+            ${s.outputs.map(o => `<span class="chip">${o}</span>`).join("")}
+          </div>
+        `;
+        stageGrid.appendChild(card);
+      });
+
+      const brief = briefInput.value.trim() || "<MÔ_TẢ_SẢN_PHẨM_HOẶC_FILE_ĐẦU_VÀO>";
+      if (chainMode) {
+        promptOutput.value = [
+          `Sử dụng craft-master-board (board/master-board.json).`,
+          `CHAIN_MODE = ON | WORKFLOW = "${activeWorkflow}" (${wf.stages.join(" -> ")})`,
+          `Yêu cầu: ${brief}`,
+          `Quy tắc bắt buộc: Bật Live Agent Cursor trên SolidCraft trước khi dựng hình, chạy lần lượt từng stage trong workflow với capsule bàn giao <= 300 token và tuân thủ tiết kiệm token tối đa.`
+        ].join("\n");
+      } else {
+        const st = BOARD_DATA.stages.find(x => x.id === selectedSingleStage);
+        promptOutput.value = [
+          `Sử dụng craft-master-board (board/master-board.json).`,
+          `CHAIN_MODE = OFF | RUN SINGLE STAGE ONLY = "${st.id}" (@${st.agent}, MCP: ${st.mcp.join(", ")})`,
+          `Yêu cầu: ${brief}`,
+          `Quy tắc bắt buộc: Chỉ chạy duy nhất stage ${st.id}, lưu artifact (${st.outputs.join(", ")}) rồi DỪNG NGAY (không kích hoạt bước tiếp theo), tuân thủ tối ưu token.`
+        ].join("\n");
+      }
+    }
+
+    function showToast(msg) {
+      toast.textContent = msg;
+      setTimeout(() => { toast.textContent = ""; }, 2600);
+    }
+
+    chainToggle.addEventListener("change", (e) => {
+      chainMode = e.target.checked;
+      render();
+    });
+    workflowSelect.addEventListener("change", (e) => {
+      activeWorkflow = e.target.value;
+      render();
+    });
+    briefInput.addEventListener("input", render);
+
+    document.getElementById("copyBtn").addEventListener("click", async () => {
+      await navigator.clipboard.writeText(promptOutput.value);
+      showToast("Đã copy Master Prompt!");
+    });
+    document.getElementById("builderBtn").addEventListener("click", async () => {
+      const p = `Gọi agent phụ craft-workflow-builder để tạo thêm 1 quy trình mới trong board/master-board.json cho nhu cầu: "${briefInput.value.trim() || "<MÔ_TẢ_NHU_CẦU_QUY_TRÌNH_MỚI>"}" (gồm tên workflow, danh sách stage, MCP ArtCraft tương ứng và hợp đồng đầu ra tiết kiệm token).`;
+      await navigator.clipboard.writeText(p);
+      showToast("Đã copy Prompt tạo quy trình mới!");
+    });
+
+    render();
+  </script>
+</body>
+</html>

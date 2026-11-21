@@ -1,7 +1,7 @@
 # AGENT_INSTALL.md — Automated Installation Protocol for AI Agents
 
 > **Audience:** Autonomous AI coding agents (Google Antigravity, Claude Code, Gemini CLI, Codex, OpenCode, Hermes).
-> Follow these steps in order to install the **complete** `cad-agent-swarm` stack without asking unnecessary questions.
+> Follow these steps in order to install the **complete ArtCraft Unified Studio & CAD Swarm** stack automatically.
 
 ---
 
@@ -42,48 +42,38 @@ bash "$HOME/.cad-agent-swarm/install.sh"
 ```
 
 What the installer automatically does:
-1. **Detects binaries:** Locates `solidcraft-cli` and `cadcraft-cli` (checks `PATH` + default install locations on Windows/macOS/Linux).
-2. **Configures MCP servers with `--compact` token-saving mode** in:
+1. **Detects all 8 ArtCraft + SolidCraft CLIs** (`solidcraft-cli`, `cadcraft-cli`, `designcraft-cli`, `vectorcraft-cli`, `photocraft-cli`, `effectcraft-cli`, `filmcraft-cli`, `soundcraft-cli`).
+2. **Registers all 9 MCP servers** (with `--compact` enabled on `solidcraft`) across:
    - Antigravity: `~/.gemini/config/mcp_config.json`
    - Claude Code: `~/.claude.json`
    - Gemini CLI: `~/.gemini/settings.json`
-   Registers:
-   - `solidcraft`: `solidcraft-cli mcp --compact`
-   - `cadcraft`: `cadcraft-cli mcp`
-   - `cadcraft-live`: `cadcraft-cli mcp --connect 127.0.0.1:7979 --lazy`
-3. **Installs all 9 skills** into `~/.gemini/config/skills/` and `~/.claude/skills/`:
-   - 3 swarm/optimization/playbook skills from this repo:
-     - `cad-visual-cursor-swarm`
-     - `cad-token-optimizer`
-     - `cad-drafting-3d-playbook`
-   - 6 official SolidCraft skills synced from `https://github.com/tangency-labs/solidcraft` (`skills/`):
-     - `solidcraft-modeling`, `solidcraft-editing`, `solidcraft-checking`, `solidcraft-mechanisms`, `solidcraft-sheetmetal`, `solidcraft-reporting`
-4. **Installs all 10 specialist sub-agents** (`agents/cad-*.md`) into `~/.claude/agents/`.
-5. **Activates Live Agent Cursor** on any currently running SolidCraft desktop instance (`ui.agent_cursor`: `show: true`, `follow_camera: true`, `speed: 1.5`).
+3. **Installs the Unified Master Control Board** (`board/master-board.json` + `board/dashboard.html`) to `~/.cad-agent-swarm/board/`.
+4. **Installs all 10 skills** into `~/.gemini/config/skills/` and `~/.claude/skills/`:
+   - 4 studio/swarm/token/playbook skills: `craft-master-board`, `cad-visual-cursor-swarm`, `cad-token-optimizer`, `cad-drafting-3d-playbook`
+   - 6 official SolidCraft skills synced from `https://github.com/tangency-labs/solidcraft`
+5. **Installs all 19 specialist sub-agents** (`agents/*.md`) into `~/.claude/agents/`:
+   - Board & Workflow: `craft-master-board`, `craft-workflow-builder`
+   - Concept / Spec / Render / Photo / Vector / Layout / Video+VFX+Sound: `craft-concept-director`, `craft-spec-contract`, `craft-studio-renderer`, `craft-photo-retoucher`, `craft-vector-brand`, `craft-layout-publisher`, `craft-vfx-film-sound`
+   - 3D/2D CAD Swarm (10): `cad-swarm-orchestrator`, `cad-cursor-choreographer`, `cad-parametric-architect`, `cad-sketcher-2d`, `cad-solid-modeler`, `cad-sheetmetal-specialist`, `cad-mechanism-assembler`, `cad-geometry-qa`, `cad-visual-reviewer`, `cad-export-bom`
+6. **Installs RTK (Rust Token Killer)** globally + configures Claude Code hooks for 60–90% CLI output compression.
+7. **Activates Live Agent Cursor** (`ui.agent_cursor`: `show: true`, `follow_camera: true`, `speed: 1.5`) on any running SolidCraft instance.
 
 ---
 
-## Step 3 — Optional Extra Token-Saving Tools
+## Step 3 — Operating the Single Master Control Board
 
-If the user also wants maximum CLI/proxy token compression, install these open-source companions:
-
-1. **RTK (Rust Token Killer)** — 60–90% shell/CLI output compression:
-   - Repo: `https://github.com/rtk-ai/rtk`
-   - Install (Cargo): `cargo install --git https://github.com/rtk-ai/rtk` (or download prebuilt release binary and run `rtk init -g` for Claude Code hooks).
-2. **FreeLLMAPI** — Free multi-provider router + built-in prompt compression:
-   - Repo: `https://github.com/tashfeenahmed/freellmapi`
-   - Point Claude Code with `npx freellmapi setup-claude --url http://127.0.0.1:3001`.
-3. **Headroom / TokenSave** — JSON & codebase graph token reducers:
-   - `https://github.com/headroomlabs-ai/headroom`
-   - `https://github.com/aovestdipaperino/tokensave`
+- **`CHAIN_MODE = ON` (Móc nối):** Runs workflow stages sequentially via `craft-master-board`, passing only a `<= 300-token` JSON handoff capsule between stages.
+- **`CHAIN_MODE = OFF` (Độc lập):** Runs ONLY the single requested stage (`S01`..`S12`) and stops immediately.
+- **Custom Workflows:** Delegate to `craft-workflow-builder` whenever the user requests a new workflow pipeline; it persists the new workflow to `board/master-board.json` and `board/dashboard.html`.
 
 ---
 
-## Step 4 — Post-Install Verification Checklist (Run Before Reporting Done)
+## Step 4 — Post-Install Verification Checklist
 
-Verify each item and report the exact status to the user:
-- [ ] `solidcraft`, `cadcraft`, `cadcraft-live` exist in MCP config files and `solidcraft` includes `"--compact"`.
-- [ ] All 9 skill folders exist in `~/.gemini/config/skills/` and `~/.claude/skills/`.
-- [ ] All 10 `cad-*.md` agent files exist in `~/.claude/agents/`.
-- [ ] If SolidCraft is open with MCP enabled, `enable-solidcraft-cursor.ps1` returns `{"ok":true,"result":{"follow_camera":true,"show":true,"speed":1.5}}`.
-- [ ] Remind the user to reload MCP servers / start a new chat session to activate newly added tools and skills.
+Verify and report each item before completing:
+- [ ] All detected ArtCraft/SolidCraft MCP servers exist in MCP config files, and `solidcraft` uses `"--compact"`.
+- [ ] All 10 skill folders exist in `~/.gemini/config/skills/` and `~/.claude/skills/`.
+- [ ] All 19 `*.md` sub-agents exist in `~/.claude/agents/`.
+- [ ] `board/master-board.json` parses cleanly and `board/dashboard.html` opens without error.
+- [ ] `rtk --version` succeeds on `PATH`.
+- [ ] Remind the user to reload MCP servers / start a new chat session to activate all 9 MCP servers and skills.
