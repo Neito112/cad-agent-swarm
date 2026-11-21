@@ -4,10 +4,14 @@
 
 ---
 
-## 1. Live Connection & Viewport Setup
+## 1. Live Connection, MCP Tools & Viewport Setup
 
 - **Headless mode (`cadcraft` MCP):** `cadcraft-cli mcp` — instant 2D DXF/DWG generation and measurement.
 - **Live visual mode (`cadcraft-live` MCP):** Launch CADCraft via `cadcraft.exe --control 7979` (or `scripts/launch-cadcraft-live.bat`) so every command draws live on the canvas.
+- **CADCraft MCP Tools (15 tools total):**
+  - Core: `command_line` (AutoCAD-style CLI string), `script` (multi-line script), `execute` (structured JSON command), `list_commands`, `inspect_drawing`, `query_entities`, `find_text`, `render` (PNG/SVG), `new_drawing`, `open`, `save`, `cancel`.
+  - Live-window UI tools (`cadcraft-live` only): `screenshot`, `ui_inspect`, `ui_click` — let agents inspect the live canvas and click UI controls directly!
+- **AutoLISP Power-User Tip:** CADCraft natively supports AutoLISP (`lisp`, `appload`) for parametric 2D loops (gear teeth, repeating bolt arrays, title-block automation) in a single compact call — massive token savings!
 - **First commands on every new drawing:**
   1. Set units (`units` / `-units`) — `mm`, decimal precision `0.00`.
   2. Set drawing limits (`limits`) and frame the viewport (`zoom` extents / `view.set`).

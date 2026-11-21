@@ -124,7 +124,34 @@ New-Item -ItemType Directory -Path $agentsTarget -Force | Out-Null
 Copy-Item "$RepoRoot\agents\*.md" $agentsTarget -Force
 Write-Host "[OK] Installed 10 CAD specialist sub-agents -> $agentsTarget" -ForegroundColor Green
 
-# 6. Enable Live Agent Cursor if SolidCraft is currently running
+# 6. Optional: Auto-install RTK (Rust Token Killer) for 60-90% CLI token savings
+if (-not (Get-Command rtk -ErrorAction SilentlyContinue)) {
+  try {
+    $rtkUrl = "https://github.com/rtk-ai/rtk/releases/download/v1.2.1/rtk-x86_64-pc-windows-msvc.zip"
+    $rtkDest = "$env:LOCALAPPDATA\Programs\rtk"
+    $rtkZip = "$env:TEMP\rtk-win.zip"
+    curl.exe -sSL --fail -o $rtkZip $rtkUrl
+    New-Item -ItemType Directory -Path $rtkDest -Force | Out-Null
+    Expand-Archive -Path $rtkZip -DestinationPath $rtkDest -Force
+    Remove-Item $rtkZip -Force
+    $userPath = [Environment]::GetEnvironmentVariable("Path", "User")
+    $parts = $userPath -split ";" | Where-Object { $_ -ne "" }
+    if ($parts -notcontains $rtkDest) {
+      [Environment]::SetEnvironmentVariable("Path", (($parts + $rtkDest) -join ";"), "User")
+    }
+    $rtkBin = Get-ChildItem $rtkDest -Recurse -Filter "rtk.exe" | Select-Object -First 1
+    if ($rtkBin) {
+      & $rtkBin.FullName init -g --auto-patch | Out-Null
+      Write-Host "[OK] Installed RTK (Rust Token Killer) + Claude Code hooks -> $($rtkBin.FullName)" -ForegroundColor Green
+    }
+  } catch {
+    Write-Warning "RTK auto-install skipped: $($_.Exception.Message)"
+  }
+} else {
+  Write-Host "[OK] RTK already installed" -ForegroundColor Green
+}
+
+# 7. Enable Live Agent Cursor if SolidCraft is currently running
 if (-not $SkipLiveCursorCheck) {
   $cursorScript = Join-Path $RepoRoot "scripts\enable-solidcraft-cursor.ps1"
   if (Test-Path $cursorScript) {
