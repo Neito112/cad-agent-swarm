@@ -76,6 +76,7 @@ Every one of the **19 sub-agents** and **10 skills** enforces:
 ## Repository Contents
 
 - `board/master-board.json` & `board/dashboard.html` — Single Unified Control Board + interactive UI
+- `launcher-patch/` — Native Rust (`egui 0.37`) patch embedding the Master Board Assistant chat panel directly inside **ArtCraft Launcher**'s main window (`Ctrl+Shift+A` / `AI ASSISTANT` button)
 - `agents/` — **19 specialist sub-agents** (10 CAD swarm ants + 9 ArtCraft studio/board agents including `craft-master-board` and `craft-workflow-builder`)
 - `skills/` — `craft-master-board`, `cad-visual-cursor-swarm`, `cad-token-optimizer`, `cad-drafting-3d-playbook` (+ installer syncs 6 official SolidCraft skills = **10 skills total**)
 - `scripts/` — `install-artcraft-assistant.ps1` (embeds Master Board into SolidCraft Assistant), `enable-solidcraft-cursor.ps1` (live cursor activator) & `launch-cadcraft-live.bat`
